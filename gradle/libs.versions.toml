@@ -25,7 +25,8 @@ assertj = { module = "org.assertj:assertj-core", version.ref = "assertj" }
 junit = { module = "org.junit.jupiter:junit-jupiter", version.ref = "junit" }
 testcontainers = { module = "org.testcontainers:testcontainers", version.ref = "testcontainers" }
 testcontainersJunit = { module = "org.testcontainers:junit-jupiter", version.ref = "testcontainers" }
-testcontainersRedpanda = { module = "org.testcontainers:redpanda", version.ref = "testcontainers" }
+#testcontainersRedpanda = { module = "org.testcontainers:redpanda", version.ref = "testcontainers" }
+testcontainersRedpanda = { module = "org.testcontainers:kafka", version.ref = "testcontainers" }
 testcontainersSpock = { module = "org.testcontainers:spock", version.ref = "testcontainers" }
 awaitility = { module = "org.awaitility:awaitility", version.ref = "awaitility" }
 log4jApi = { module = "org.apache.logging.log4j:log4j-api", version.ref = "log4j" }

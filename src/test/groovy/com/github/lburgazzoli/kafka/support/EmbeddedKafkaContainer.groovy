@@ -8,11 +8,12 @@ import org.apache.kafka.common.serialization.ByteArrayDeserializer
 import org.apache.kafka.common.serialization.ByteArraySerializer
 import org.slf4j.LoggerFactory
 import org.testcontainers.containers.output.Slf4jLogConsumer
-import org.testcontainers.redpanda.RedpandaContainer
+import org.testcontainers.kafka.KafkaContainer
 import org.testcontainers.utility.DockerImageName
 
-class EmbeddedKafkaContainer extends RedpandaContainer {
-    static final String IMAGE_NAME = "docker.redpanda.com/redpandadata/redpanda:v23.1.2"
+class EmbeddedKafkaContainer extends KafkaContainer {
+//    static final String IMAGE_NAME = "docker.redpanda.com/redpandadata/redpanda:v23.1.2"
+    static final String IMAGE_NAME = "apache/kafka-native:3.8.0"
     static final DockerImageName IMAGE = DockerImageName.parse(IMAGE_NAME)
 
     EmbeddedKafkaContainer() {
