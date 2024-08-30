@@ -6,6 +6,7 @@ import java.util.Optional;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Function;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import org.apache.kafka.connect.connector.ConnectRecord;
 import org.apache.kafka.connect.data.SchemaAndValue;
 import org.apache.kafka.connect.storage.Converter;
@@ -57,12 +58,38 @@ public class WasmFunction<R extends ConnectRecord<R>> implements AutoCloseable, 
         this.plugin = new Plugin(manifest, true, imports());
     }
 
+    ObjectMapper om = new ObjectMapper();
+
     @Override
     public R apply(R record) {
         try {
             ref.set(record);
-            String result = plugin.call(functionName, ref.get().key().toString());
-            return ref.get();
+
+            String json = om.createObjectNode()
+                    .put("key", new String(recordConverter.fromConnectKey(record)))
+                    .put("value", new String(recordConverter.fromConnectValue(record)))
+                    .toString();
+
+
+            String result = plugin.call(functionName, json);
+
+            JsonNode jsonNode = om.readTree(result);
+            final SchemaAndValue svk = recordConverter.toConnectKey(record, jsonNode.get("key").asText().getBytes());
+            final SchemaAndValue svv = recordConverter.toConnectKey(record, jsonNode.get("value").asText().getBytes());
+
+            System.out.println("result: " + result);
+
+            return record.newRecord(
+                    record.topic(),
+                    record.kafkaPartition(),
+                    svk.schema(),
+                    svk.value(),
+                    svv.schema(),
+                    svv.value(),
+                    record.timestamp(),
+                    record.headers());
+
+
         } catch (WASMMachineException e) {
             LOGGER.warn("message: {}, stack {}", e.getMessage(), e.stackFrames());
             throw new RuntimeException(e);
