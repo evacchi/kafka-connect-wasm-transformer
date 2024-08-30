@@ -1,0 +1,40 @@
+exports:
+  apply:
+    description: |
+      This function transforms a given record in place
+  transform:
+    input:
+      $ref: "#/components/schemas/Record"
+      contentType: application/json
+    output:
+      $ref: "#/components/schemas/Record"
+      contentType: application/json
+    description: |
+      This function takes a Record and returns a Record.
+imports:
+  get_key:
+    output:
+      type: string
+      contentType: text/plain; charset=utf-8
+  set_key:
+    input:
+      type: string
+      contentType: text/plain; charset=utf-8
+  get_value:
+    output:
+      type: string
+      contentType: text/plain; charset=utf-8
+  set_value:
+    input:
+      type: string
+      contentType: text/plain; charset=utf-8
+version: v1-draft
+components:
+  schemas:
+    Record:
+      properties:
+        key:
+          type: string
+        value:
+          type: string
+      description: A plain key/value record.

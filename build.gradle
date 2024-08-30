@@ -30,6 +30,7 @@ dependencies {
     implementation libs.slf4j
     implementation libs.bundles.kafka
     implementation libs.bundles.chicory
+    implementation libs.bundles.extism
     implementation libs.bundles.jackson
 
     testImplementation platform("org.apache.groovy:groovy-bom:${libs.versions.groovy.get()}")

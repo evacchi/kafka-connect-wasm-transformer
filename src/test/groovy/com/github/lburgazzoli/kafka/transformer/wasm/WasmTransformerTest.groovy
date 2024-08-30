@@ -36,8 +36,8 @@ class WasmTransformerTest extends WasmTransformerTestSpec {
         given:
             def t = new WasmTransformer()
             t.configure(Map.of(
-                    WasmTransformer.WASM_MODULE_PATH, 'src/test/resources/functions.wasm',
-                    WasmTransformer.WASM_FUNCTION_NAME, 'to_upper',
+                    WasmTransformer.WASM_MODULE_PATH, 'src/test/resources/plugin.wasm',
+                    WasmTransformer.WASM_FUNCTION_NAME, 'apply',
             ))
 
             def recordIn = sourceRecord()
