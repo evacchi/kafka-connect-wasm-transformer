@@ -1,6 +1,6 @@
 package com.github.lburgazzoli.kafka.transformer.wasm;
 
-public class WasmFunctionException extends Exception {
+public class WasmFunctionException extends RuntimeException {
     private String functionName;
 
     public WasmFunctionException(String functionName, String message) {

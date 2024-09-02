@@ -1,12 +1,13 @@
 package com.github.lburgazzoli.kafka.transformer.wasm;
 
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Function;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import org.apache.kafka.connect.connector.ConnectRecord;
 import org.apache.kafka.connect.data.SchemaAndValue;
 import org.apache.kafka.connect.storage.Converter;
@@ -23,6 +24,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.dylibso.chicory.runtime.exceptions.WASMMachineException;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.json.JsonMapper;
 
@@ -64,37 +66,13 @@ public class WasmFunction<R extends ConnectRecord<R>> implements AutoCloseable, 
     public R apply(R record) {
         try {
             ref.set(record);
-
-            String json = om.createObjectNode()
-                    .put("key", new String(recordConverter.fromConnectKey(record)))
-                    .put("value", new String(recordConverter.fromConnectValue(record)))
-                    .toString();
-
-
-            String result = plugin.call(functionName, json);
-
-            JsonNode jsonNode = om.readTree(result);
-            final SchemaAndValue svk = recordConverter.toConnectKey(record, jsonNode.get("key").asText().getBytes());
-            final SchemaAndValue svv = recordConverter.toConnectKey(record, jsonNode.get("value").asText().getBytes());
-
-            System.out.println("result: " + result);
-
-            return record.newRecord(
-                    record.topic(),
-                    record.kafkaPartition(),
-                    svk.schema(),
-                    svk.value(),
-                    svv.schema(),
-                    svv.value(),
-                    record.timestamp(),
-                    record.headers());
-
-
+            plugin.call(functionName, (byte[]) null);
+            return ref.get();
         } catch (WASMMachineException e) {
             LOGGER.warn("message: {}, stack {}", e.getMessage(), e.stackFrames());
-            throw new RuntimeException(e);
+            throw new WasmFunctionException(functionName, e);
         } catch (Exception e) {
-            throw new RuntimeException(e);
+            throw new WasmFunctionException(functionName, e);
         } finally {
             ref.set(null);
         }
@@ -139,6 +117,31 @@ public class WasmFunction<R extends ConnectRecord<R>> implements AutoCloseable, 
                     new LibExtism.ExtismValType[0],
                     this::setValueFn,
                     Optional.empty()),
+                new HostFunction(
+                    "get_header",
+                    new LibExtism.ExtismValType[] { LibExtism.ExtismValType.I64 },
+                    new LibExtism.ExtismValType[] { LibExtism.ExtismValType.I64 },
+                    this::getHeaderFn,
+                    Optional.empty()),
+                new HostFunction(
+                    "set_header",
+                    new LibExtism.ExtismValType[] { LibExtism.ExtismValType.I64 },
+                    new LibExtism.ExtismValType[0],
+                    this::setHeaderFn,
+                    Optional.empty()),
+                new HostFunction(
+                    "get_topic",
+                    new LibExtism.ExtismValType[0],
+                    new LibExtism.ExtismValType[] { LibExtism.ExtismValType.I64 },
+                    this::getTopicFn,
+                    Optional.empty()),
+                new HostFunction(
+                    "set_topic",
+                    new LibExtism.ExtismValType[] { LibExtism.ExtismValType.I64 },
+                    new LibExtism.ExtismValType[0],
+                    this::setTopicFn,
+                    Optional.empty()),
+
         };
     }
 
@@ -152,35 +155,28 @@ public class WasmFunction<R extends ConnectRecord<R>> implements AutoCloseable, 
     // Headers
     //
 
-    //    private Value[] getHeaderFn(Plugin plugin, LibExtism.ExtismVal[] params, LibExtism.ExtismVal[] returns, Optional<HostUserData> userData) {
-    //        final int addr = args[0].asInt();
-    //        final int size = args[1].asInt();
-    //
-    //        final String headerName = instance.memory().readString(addr, size);
-    //        final R record = this.ref.get();
-    //        final byte[] rawData = recordConverter.fromConnectHeader(record, headerName);
-    //
-    //        return new Value[] {
-    //                write(rawData)
-    //        };
-    //    }
-    //
-    //    private Value[] setHeaderFn(Instance instance, Value... args) {
-    //        final int headerNameAddr = args[0].asInt();
-    //        final int headerNameSize = args[1].asInt();
-    //        final int headerDataAddr = args[2].asInt();
-    //        final int headerDataSize = args[3].asInt();
-    //
-    //        final String headerName = instance.memory().readString(headerNameAddr, headerNameSize);
-    //        final byte[] headerData = instance.memory().readBytes(headerDataAddr, headerDataSize);
-    //
-    //        final R record = this.ref.get();
-    //        final SchemaAndValue sv = recordConverter.toConnectHeader(record, headerName, headerData);
-    //
-    //        record.headers().add(headerName, sv);
-    //
-    //        return new Value[] {};
-    //    }
+    private void getHeaderFn(ExtismCurrentPlugin plugin, LibExtism.ExtismVal[] params, LibExtism.ExtismVal[] returns,
+        Optional<HostUserData> userData) {
+        final R record = this.ref.get();
+        final byte[] rawData = recordConverter.fromConnectHeader(record, plugin.inputString(params[0]));
+        plugin.returnBytes(returns[0], rawData);
+    }
+
+    private void setHeaderFn(ExtismCurrentPlugin plugin, LibExtism.ExtismVal[] params, LibExtism.ExtismVal[] returns,
+        Optional<HostUserData> userData) {
+        try {
+            JsonNode json = MAPPER.readTree(plugin.inputBytes(params[0]));
+            String headerName = json.get("key").asText();
+            String headerData = json.get("value").asText();
+
+            final R record = this.ref.get();
+            final SchemaAndValue sv = recordConverter.toConnectHeader(record, headerName,
+                headerData.getBytes(StandardCharsets.UTF_8));
+            record.headers().add(headerName, sv);
+        } catch (IOException e) {
+            throw new WasmFunctionException(functionName, e);
+        }
+    }
 
     //
     // Key
@@ -188,7 +184,6 @@ public class WasmFunction<R extends ConnectRecord<R>> implements AutoCloseable, 
 
     private void getKeyFn(ExtismCurrentPlugin plugin, LibExtism.ExtismVal[] params, LibExtism.ExtismVal[] returns,
         Optional<HostUserData> userData) {
-        System.out.println("getKeyFn");
         final R record = this.ref.get();
         final byte[] rawData = recordConverter.fromConnectKey(record);
         plugin.returnBytes(returns[0], rawData);
@@ -243,35 +238,31 @@ public class WasmFunction<R extends ConnectRecord<R>> implements AutoCloseable, 
     //
     // Topic
     //
-    //
-    //    private Value[] getTopicFn(Instance instance, Value... args) {
-    //        final R record = this.ref.get();
-    //        byte[] rawData = record.topic().getBytes(StandardCharsets.UTF_8);
-    //
-    //        return new Value[] {
-    //                write(rawData)
-    //        };
-    //    }
-    //
-    //    private Value[] setTopicFn(Instance instance, Value... args) {
-    //        final int addr = args[0].asInt();
-    //        final int size = args[1].asInt();
-    //        final R record = this.ref.get();
-    //
-    //        this.ref.set(
-    //            record.newRecord(
-    //                instance.memory().readString(addr, size),
-    //                record.kafkaPartition(),
-    //                record.keySchema(),
-    //                record.key(),
-    //                record.valueSchema(),
-    //                record.value(),
-    //                record.timestamp(),
-    //                record.headers()));
-    //
-    //        return new Value[] {};
-    //    }
-    //
+
+    private void getTopicFn(ExtismCurrentPlugin plugin, LibExtism.ExtismVal[] args, LibExtism.ExtismVal[] returns,
+        Optional<HostUserData> userData) {
+        final R record = this.ref.get();
+        byte[] rawData = record.topic().getBytes(StandardCharsets.UTF_8);
+
+        plugin.returnBytes(returns[0], rawData);
+    }
+
+    private void setTopicFn(ExtismCurrentPlugin plugin, LibExtism.ExtismVal[] args, LibExtism.ExtismVal[] returns,
+        Optional<HostUserData> userData) {
+        final R record = this.ref.get();
+
+        this.ref.set(
+            record.newRecord(
+                plugin.inputString(args[0]),
+                record.kafkaPartition(),
+                record.keySchema(),
+                record.key(),
+                record.valueSchema(),
+                record.value(),
+                record.timestamp(),
+                record.headers()));
+    }
+
     //    //
     //    // Record
     //    //

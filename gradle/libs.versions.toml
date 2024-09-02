@@ -10,7 +10,7 @@ groovy = "4.0.18"
 spock = "2.3-groovy-4.0"
 kafka = "3.8.0"
 chicory = "0.0.12"
-extism = "1.0.1"
+extism = "2.0.0-SNAPSHOT"
 
 versionsPlugin = "0.51.0"
 spotlessPlugin = "6.25.0"

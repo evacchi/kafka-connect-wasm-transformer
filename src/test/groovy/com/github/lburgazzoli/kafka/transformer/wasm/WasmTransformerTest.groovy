@@ -38,7 +38,7 @@ class WasmTransformerTest extends WasmTransformerTestSpec {
             def t = new WasmTransformer()
             t.configure(Map.of(
                     WasmTransformer.WASM_MODULE_PATH, 'src/test/resources/plugin.wasm',
-                    WasmTransformer.WASM_FUNCTION_NAME, 'transform',
+                    WasmTransformer.WASM_FUNCTION_NAME, 'to_upper',
             ))
 
             def recordIn = sourceRecord()
@@ -103,7 +103,6 @@ class WasmTransformerTest extends WasmTransformerTestSpec {
     }
 
 
-    @Ignore
     def 'direct transformer (copy_header)'() {
         given:
             def headerValue = UUID.randomUUID().toString().getBytes(StandardCharsets.UTF_8)
