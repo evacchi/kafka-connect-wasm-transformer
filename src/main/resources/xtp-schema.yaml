@@ -2,15 +2,22 @@ exports:
   apply:
     description: |
       This function transforms a given record in place
+  to_upper:
+    description: |
+      This function converts key and value to upper case.
   transform:
-    input:
-      $ref: "#/components/schemas/Record"
-      contentType: application/json
-    output:
-      $ref: "#/components/schemas/Record"
-      contentType: application/json
     description: |
       This function takes a Record and returns a Record.
+  copy_header:
+    description: |
+      This function copies a header into another header.
+  value_to_key:
+    description: |
+      This function copies a value to the key.
+  header_to_key:
+    description: |
+      This function copies a header to the key.
+
 imports:
   get_key:
     output:
@@ -20,21 +27,64 @@ imports:
     input:
       type: string
       contentType: text/plain; charset=utf-8
+  get_topic:
+    output:
+      type: string
+      contentType: text/plain; charset=utf-8
   get_value:
     output:
+      type: buffer
+      contentType: application/x-binary
+  get_record:
+    output:
+      $ref: "#/components/schemas/Record"
+      contentType: application/json
+  set_record:
+    input:
+      $ref: "#/components/schemas/Record"
+      contentType: application/json
+
+  set_topic:
+    input:
       type: string
       contentType: text/plain; charset=utf-8
   set_value:
     input:
+      type: buffer
+      contentType: application/x-binary
+  get_header:
+    input:
       type: string
       contentType: text/plain; charset=utf-8
+    output:
+      type: buffer
+      contentType: application/x-binary
+    description: ""
+  set_header:
+    input:
+      $ref: "#/components/schemas/Header"
+      contentType: application/json
+    description: ""
 version: v1-draft
 components:
   schemas:
-    Record:
+    Header:
       properties:
         key:
           type: string
         value:
+          type: buffer
+      description: A key/value header pair.
+    Record:
+      properties:
+        topic:
           type: string
+        key:
+          type: buffer
+        value:
+          type: buffer
+        headers:
+          type: array
+          items:
+            $ref: "#/components/schemas/Header"
       description: A plain key/value record.

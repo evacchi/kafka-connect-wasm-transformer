@@ -90,7 +90,7 @@ public class WasmFunction<R extends ConnectRecord<R>> implements AutoCloseable, 
 
     private HostFunction[] imports() {
         LibExtism.ExtismValType[] void_t = new LibExtism.ExtismValType[0];
-        LibExtism.ExtismValType[] i64_t = {LibExtism.ExtismValType.I64};
+        LibExtism.ExtismValType[] i64_t = { LibExtism.ExtismValType.I64 };
         String getKey = "get_key";
         return new HostFunction[] {
                 hostFunction(getKey, this::setKeyFn, void_t, i64_t),
@@ -106,7 +106,8 @@ public class WasmFunction<R extends ConnectRecord<R>> implements AutoCloseable, 
         };
     }
 
-    private HostFunction hostFunction(String name, ExtismFunction<?> wasmFunction, LibExtism.ExtismValType[] inType, LibExtism.ExtismValType[] outType) {
+    private HostFunction hostFunction(String name, ExtismFunction<?> wasmFunction, LibExtism.ExtismValType[] inType,
+        LibExtism.ExtismValType[] outType) {
         return new HostFunction(name, inType, outType, wasmFunction, Optional.empty());
     }
 
