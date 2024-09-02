@@ -4,6 +4,8 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.util.Base64;
+import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicReference;
@@ -48,11 +50,12 @@ public class WasmFunction<R extends ConnectRecord<R>> implements AutoCloseable, 
     private final Plugin plugin;
 
     public WasmFunction(
-        String modulePath,
-        String functionName,
-        Converter keyConverter,
-        Converter valueConverter,
-        HeaderConverter headerConverter) {
+            String modulePath,
+            String functionName,
+            Converter keyConverter,
+            Converter valueConverter,
+            HeaderConverter headerConverter,
+            Map<String, ?> props) {
 
         Objects.requireNonNull(modulePath);
         this.ref = new AtomicReference<>();
@@ -61,7 +64,7 @@ public class WasmFunction<R extends ConnectRecord<R>> implements AutoCloseable, 
 
         WasmSourceResolver wasmSourceResolver = new WasmSourceResolver();
         PathWasmSource wasmSource = wasmSourceResolver.resolve(Path.of(modulePath));
-        Manifest manifest = new Manifest(wasmSource);
+        Manifest manifest = new Manifest(List.of(wasmSource), null, (Map<String, String>) props);
         this.plugin = new Plugin(manifest, true, imports());
     }
 

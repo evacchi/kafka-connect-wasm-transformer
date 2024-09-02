@@ -1,5 +1,6 @@
 package com.github.lburgazzoli.kafka.transformer.wasm;
 
+import java.util.HashMap;
 import java.util.Map;
 
 import org.apache.kafka.common.config.ConfigDef;
@@ -96,7 +97,16 @@ public class WasmTransformer<R extends ConnectRecord<R>> implements Transformati
             throw new ConfigException(WASM_FUNCTION_NAME);
         }
 
-        this.function = new WasmFunction<>(modulePath, functionName, keyConverter, valueConverter, headerConverter);
+        var cfg = new HashMap<>(props);
+
+        cfg.remove(KEY_CONVERTER);
+        cfg.remove(VALUE_CONVERTER);
+        cfg.remove(HEADER_CONVERTER);
+        cfg.remove(WASM_MODULE_PATH);
+        cfg.remove(WASM_FUNCTION_NAME);
+
+        this.function = new WasmFunction<>(
+                modulePath, functionName, keyConverter, valueConverter, headerConverter, cfg);
     }
 
     @Override
