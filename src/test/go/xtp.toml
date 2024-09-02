@@ -1,14 +1,14 @@
 app_id = ""
 
 # This is where 'xtp plugin push' expects to find the wasm file after the build script has run.
-bin = "dist/plugin.wasm"
+bin = "../resources/plugin.wasm"
 extension_point_id = ""
 name = "kafka-connect"
 
 [scripts]
 
   # xtp plugin build runs this script to generate the wasm file
-  build = "mkdir -p dist && tinygo build -target wasi -o dist/plugin.wasm ."
+  build = "mkdir -p dist && tinygo build -target wasi -o ../resources/plugin.wasm ."
 
   # xtp plugin init runs this script to format the plugin code
   format = "go fmt"

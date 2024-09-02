@@ -9,7 +9,6 @@ target
 .factorypath
 .classpath
 .gradle/
-dist/
 
 .DS_Store
 tmp/
