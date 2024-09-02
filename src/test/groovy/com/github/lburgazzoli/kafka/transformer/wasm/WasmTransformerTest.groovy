@@ -56,12 +56,11 @@ class WasmTransformerTest extends WasmTransformerTestSpec {
             closeQuietly(t)
     }
 
-    @Ignore
     def 'direct transformer (value_to_key)'() {
         given:
             def t = new WasmTransformer()
             t.configure(Map.of(
-                    WasmTransformer.WASM_MODULE_PATH, 'src/test/resources/functions.wasm',
+                    WasmTransformer.WASM_MODULE_PATH, 'src/test/resources/plugin.wasm',
                     WasmTransformer.WASM_FUNCTION_NAME, 'value_to_key',
             ))
 
@@ -79,12 +78,11 @@ class WasmTransformerTest extends WasmTransformerTestSpec {
             closeQuietly(t)
     }
 
-    @Ignore
     def 'direct transformer (header_to_key)'() {
         given:
             def t = new WasmTransformer()
             t.configure(Map.of(
-                    WasmTransformer.WASM_MODULE_PATH, 'src/test/resources/functions.wasm',
+                    WasmTransformer.WASM_MODULE_PATH, 'src/test/resources/plugin.wasm',
                     WasmTransformer.WASM_FUNCTION_NAME, 'header_to_key',
             ))
 
@@ -129,12 +127,11 @@ class WasmTransformerTest extends WasmTransformerTestSpec {
             closeQuietly(t)
     }
 
-    @Ignore
     def 'direct transformer (transform)'() {
         given:
             def t = new WasmTransformer()
             t.configure(Map.of(
-                    WasmTransformer.WASM_MODULE_PATH, 'src/test/resources/functions.wasm',
+                    WasmTransformer.WASM_MODULE_PATH, 'src/test/resources/plugin.wasm',
                     WasmTransformer.WASM_FUNCTION_NAME, 'transform',
             ))
 
@@ -153,7 +150,6 @@ class WasmTransformerTest extends WasmTransformerTestSpec {
             closeQuietly(t)
     }
 
-    @Ignore
     def 'pipeline transformer (to_upper)'() {
 
         given:
@@ -175,7 +171,7 @@ class WasmTransformerTest extends WasmTransformerTestSpec {
                     FileStreamSourceConnector.TOPIC_CONFIG, topic,
                     ConnectorConfig.TRANSFORMS_CONFIG, 'wasm',
                     ConnectorConfig.TRANSFORMS_CONFIG + '.wasm.type', WasmTransformer.class.name,
-                    ConnectorConfig.TRANSFORMS_CONFIG + '.wasm.' + WasmTransformer.WASM_MODULE_PATH, 'src/test/resources/functions.wasm',
+                    ConnectorConfig.TRANSFORMS_CONFIG + '.wasm.' + WasmTransformer.WASM_MODULE_PATH, 'src/test/resources/plugin.wasm',
                     ConnectorConfig.TRANSFORMS_CONFIG + '.wasm.' + WasmTransformer.WASM_FUNCTION_NAME, 'transform',
                     ConnectorConfig.TRANSFORMS_CONFIG + '.wasm.' + WasmTransformer.KEY_CONVERTER, StringConverter.class.name,
                     ConnectorConfig.TRANSFORMS_CONFIG + '.wasm.' + WasmTransformer.VALUE_CONVERTER, StringConverter.class.name,
@@ -205,7 +201,6 @@ class WasmTransformerTest extends WasmTransformerTestSpec {
             closeQuietly(kc)
     }
 
-    @Ignore
     def 'pipeline transformer (value_to_key)'() {
 
         given:
@@ -227,7 +222,7 @@ class WasmTransformerTest extends WasmTransformerTestSpec {
                     FileStreamSourceConnector.TOPIC_CONFIG, topic,
                     ConnectorConfig.TRANSFORMS_CONFIG, 'wasm',
                     ConnectorConfig.TRANSFORMS_CONFIG + '.wasm.type', WasmTransformer.class.name,
-                    ConnectorConfig.TRANSFORMS_CONFIG + '.wasm.' + WasmTransformer.WASM_MODULE_PATH, 'src/test/resources/functions.wasm',
+                    ConnectorConfig.TRANSFORMS_CONFIG + '.wasm.' + WasmTransformer.WASM_MODULE_PATH, 'src/test/resources/plugin.wasm',
                     ConnectorConfig.TRANSFORMS_CONFIG + '.wasm.' + WasmTransformer.WASM_FUNCTION_NAME, 'value_to_key',
                     ConnectorConfig.TRANSFORMS_CONFIG + '.wasm.' + WasmTransformer.KEY_CONVERTER, StringConverter.class.name,
                     ConnectorConfig.TRANSFORMS_CONFIG + '.wasm.' + WasmTransformer.VALUE_CONVERTER, StringConverter.class.name,
@@ -258,7 +253,6 @@ class WasmTransformerTest extends WasmTransformerTestSpec {
             closeQuietly(kc)
     }
 
-    @Ignore
     def 'pipeline transformer (transform)'() {
 
         given:
@@ -280,7 +274,7 @@ class WasmTransformerTest extends WasmTransformerTestSpec {
                     FileStreamSourceConnector.TOPIC_CONFIG, topic,
                     ConnectorConfig.TRANSFORMS_CONFIG, 'wasm',
                     ConnectorConfig.TRANSFORMS_CONFIG + '.wasm.type', WasmTransformer.class.name,
-                    ConnectorConfig.TRANSFORMS_CONFIG + '.wasm.' + WasmTransformer.WASM_MODULE_PATH, 'src/test/resources/functions.wasm',
+                    ConnectorConfig.TRANSFORMS_CONFIG + '.wasm.' + WasmTransformer.WASM_MODULE_PATH, 'src/test/resources/plugin.wasm',
                     ConnectorConfig.TRANSFORMS_CONFIG + '.wasm.' + WasmTransformer.WASM_FUNCTION_NAME, 'transform',
                     ConnectorConfig.TRANSFORMS_CONFIG + '.wasm.' + WasmTransformer.KEY_CONVERTER, StringConverter.class.name,
                     ConnectorConfig.TRANSFORMS_CONFIG + '.wasm.' + WasmTransformer.VALUE_CONVERTER, StringConverter.class.name,

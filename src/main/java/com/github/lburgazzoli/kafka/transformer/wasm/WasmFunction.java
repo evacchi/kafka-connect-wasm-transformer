@@ -17,6 +17,7 @@ import org.apache.kafka.connect.header.Headers;
 import org.apache.kafka.connect.storage.Converter;
 import org.apache.kafka.connect.storage.HeaderConverter;
 import org.extism.sdk.ExtismCurrentPlugin;
+import org.extism.sdk.ExtismFunction;
 import org.extism.sdk.HostFunction;
 import org.extism.sdk.HostUserData;
 import org.extism.sdk.LibExtism;
@@ -87,78 +88,26 @@ public class WasmFunction<R extends ConnectRecord<R>> implements AutoCloseable, 
         plugin.close();
     }
 
-    private static boolean isError(int number) {
-        return (number & (1 << 31)) != 0;
-    }
-
-    private static int errSize(int number) {
-        return number & (~(1 << 31));
-    }
-
     private HostFunction[] imports() {
+        LibExtism.ExtismValType[] void_t = new LibExtism.ExtismValType[0];
+        LibExtism.ExtismValType[] i64_t = {LibExtism.ExtismValType.I64};
+        String getKey = "get_key";
         return new HostFunction[] {
-                new HostFunction(
-                    "get_key",
-                    new LibExtism.ExtismValType[0],
-                    new LibExtism.ExtismValType[] { LibExtism.ExtismValType.I64 },
-                    this::getKeyFn,
-                    Optional.empty()),
-                new HostFunction(
-                    "set_key",
-                    new LibExtism.ExtismValType[] { LibExtism.ExtismValType.I64 },
-                    new LibExtism.ExtismValType[0],
-                    this::setKeyFn,
-                    Optional.empty()),
-                new HostFunction(
-                    "get_value",
-                    new LibExtism.ExtismValType[0],
-                    new LibExtism.ExtismValType[] { LibExtism.ExtismValType.I64 },
-                    this::getValueFn,
-                    Optional.empty()),
-                new HostFunction(
-                    "set_value",
-                    new LibExtism.ExtismValType[] { LibExtism.ExtismValType.I64 },
-                    new LibExtism.ExtismValType[0],
-                    this::setValueFn,
-                    Optional.empty()),
-                new HostFunction(
-                    "get_header",
-                    new LibExtism.ExtismValType[] { LibExtism.ExtismValType.I64 },
-                    new LibExtism.ExtismValType[] { LibExtism.ExtismValType.I64 },
-                    this::getHeaderFn,
-                    Optional.empty()),
-                new HostFunction(
-                    "set_header",
-                    new LibExtism.ExtismValType[] { LibExtism.ExtismValType.I64 },
-                    new LibExtism.ExtismValType[0],
-                    this::setHeaderFn,
-                    Optional.empty()),
-                new HostFunction(
-                    "get_topic",
-                    new LibExtism.ExtismValType[0],
-                    new LibExtism.ExtismValType[] { LibExtism.ExtismValType.I64 },
-                    this::getTopicFn,
-                    Optional.empty()),
-                new HostFunction(
-                    "set_topic",
-                    new LibExtism.ExtismValType[] { LibExtism.ExtismValType.I64 },
-                    new LibExtism.ExtismValType[0],
-                    this::setTopicFn,
-                    Optional.empty()),
-                new HostFunction(
-                    "get_record",
-                    new LibExtism.ExtismValType[0],
-                    new LibExtism.ExtismValType[] { LibExtism.ExtismValType.I64 },
-                    this::getRecordFn,
-                    Optional.empty()),
-                new HostFunction(
-                    "set_record",
-                    new LibExtism.ExtismValType[] { LibExtism.ExtismValType.I64 },
-                    new LibExtism.ExtismValType[0],
-                    this::setRecordFn,
-                    Optional.empty()),
-
+                hostFunction(getKey, this::setKeyFn, void_t, i64_t),
+                hostFunction("set_key", this::setKeyFn, i64_t, void_t),
+                hostFunction("get_value", this::getValueFn, void_t, i64_t),
+                hostFunction("set_value", this::setValueFn, i64_t, void_t),
+                hostFunction("get_header", this::getHeaderFn, i64_t, i64_t),
+                hostFunction("set_header", this::setHeaderFn, i64_t, void_t),
+                hostFunction("get_topic", this::getTopicFn, void_t, i64_t),
+                hostFunction("set_topic", this::setTopicFn, i64_t, void_t),
+                hostFunction("get_record", this::getRecordFn, void_t, i64_t),
+                hostFunction("set_record", this::setRecordFn, i64_t, void_t),
         };
+    }
+
+    private HostFunction hostFunction(String name, ExtismFunction<?> wasmFunction, LibExtism.ExtismValType[] inType, LibExtism.ExtismValType[] outType) {
+        return new HostFunction(name, inType, outType, wasmFunction, Optional.empty());
     }
 
     //
