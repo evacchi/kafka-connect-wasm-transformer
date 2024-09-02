@@ -3,6 +3,7 @@ package com.github.lburgazzoli.kafka.transformer.wasm;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
+import java.util.Base64;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicReference;
@@ -10,6 +11,9 @@ import java.util.function.Function;
 
 import org.apache.kafka.connect.connector.ConnectRecord;
 import org.apache.kafka.connect.data.SchemaAndValue;
+import org.apache.kafka.connect.header.ConnectHeaders;
+import org.apache.kafka.connect.header.Header;
+import org.apache.kafka.connect.header.Headers;
 import org.apache.kafka.connect.storage.Converter;
 import org.apache.kafka.connect.storage.HeaderConverter;
 import org.extism.sdk.ExtismCurrentPlugin;
@@ -141,6 +145,19 @@ public class WasmFunction<R extends ConnectRecord<R>> implements AutoCloseable, 
                     new LibExtism.ExtismValType[0],
                     this::setTopicFn,
                     Optional.empty()),
+                new HostFunction(
+                        "get_record",
+                        new LibExtism.ExtismValType[0],
+                        new LibExtism.ExtismValType[] { LibExtism.ExtismValType.I64 },
+                        this::getRecordFn,
+                        Optional.empty()),
+                new HostFunction(
+                        "set_record",
+                        new LibExtism.ExtismValType[] { LibExtism.ExtismValType.I64 },
+                        new LibExtism.ExtismValType[0],
+                        this::setRecordFn,
+                        Optional.empty()),
+
 
         };
     }
@@ -167,11 +184,11 @@ public class WasmFunction<R extends ConnectRecord<R>> implements AutoCloseable, 
         try {
             JsonNode json = MAPPER.readTree(plugin.inputBytes(params[0]));
             String headerName = json.get("key").asText();
-            String headerData = json.get("value").asText();
+            JsonNode binaryData = json.get("value");
+            byte[] headerData = Base64.getDecoder().decode(binaryData.asText());
 
             final R record = this.ref.get();
-            final SchemaAndValue sv = recordConverter.toConnectHeader(record, headerName,
-                headerData.getBytes(StandardCharsets.UTF_8));
+            final SchemaAndValue sv = recordConverter.toConnectHeader(record, headerName, headerData);
             record.headers().add(headerName, sv);
         } catch (IOException e) {
             throw new WasmFunctionException(functionName, e);
@@ -263,73 +280,68 @@ public class WasmFunction<R extends ConnectRecord<R>> implements AutoCloseable, 
                 record.headers()));
     }
 
-    //    //
-    //    // Record
-    //    //
     //
-    //    private Value[] getRecordFn(Instance instance, Value... args) {
-    //        final R record = this.ref.get();
+    // Record
     //
-    //        WasmRecord env = new WasmRecord();
-    //        env.topic = record.topic();
-    //        env.key = recordConverter.fromConnectKey(record);
-    //        env.value = recordConverter.fromConnectValue(record);
-    //
-    //        if (record.headers() != null) {
-    //            // May not be needed but looks like the record headers may be required
-    //            // by key/val converters
-    //            for (Header header : record.headers()) {
-    //                env.headers.put(header.key(), recordConverter.fromConnectHeader(record, header));
-    //            }
-    //        }
-    //
-    //        try {
-    //            byte[] rawData = MAPPER.writeValueAsBytes(env);
-    //
-    //            return new Value[] {
-    //                    write(rawData)
-    //            };
-    //        } catch (Exception e) {
-    //            throw new RuntimeException(e);
-    //        }
-    //    }
-    //
-    //    private Value[] setRecordFn(Instance instance, Value... args) {
-    //        final int addr = args[0].asInt();
-    //        final int size = args[1].asInt();
-    //        final R record = this.ref.get();
-    //        final byte[] in = instance.memory().readBytes(addr, size);
-    //
-    //        try {
-    //            WasmRecord w = MAPPER.readValue(in, WasmRecord.class);
-    //
-    //            // May not be needed but looks like the record headers may be required
-    //            // by key/val converters so let's do it even if I don't think the way
-    //            // I'm doing it is 100% correct :)
-    //
-    //            Headers connectHeaders = new ConnectHeaders();
-    //
-    //            w.headers.forEach((k, v) -> {
-    //                connectHeaders.add(k, recordConverter.toConnectHeader(record, k, v));
-    //            });
-    //
-    //            SchemaAndValue keyAndSchema = recordConverter.toConnectKey(record, w.key);
-    //            SchemaAndValue valueAndSchema = recordConverter.toConnectValue(record, w.value);
-    //
-    //            this.ref.set(
-    //                record.newRecord(
-    //                    w.topic,
-    //                    record.kafkaPartition(),
-    //                    keyAndSchema.schema(),
-    //                    keyAndSchema.value(),
-    //                    valueAndSchema.schema(),
-    //                    valueAndSchema.value(),
-    //                    record.timestamp(),
-    //                    connectHeaders));
-    //        } catch (Exception e) {
-    //            throw new RuntimeException(e);
-    //        }
-    //
-    //        return new Value[] {};
-    //    }
+
+    private void getRecordFn(ExtismCurrentPlugin plugin, LibExtism.ExtismVal[] args, LibExtism.ExtismVal[] returns,
+        Optional<HostUserData> userData) {
+        final R record = this.ref.get();
+
+        WasmRecord env = new WasmRecord();
+        env.topic = record.topic();
+        env.key = recordConverter.fromConnectKey(record);
+        env.value = recordConverter.fromConnectValue(record);
+
+        if (record.headers() != null) {
+            // May not be needed but looks like the record headers may be required
+            // by key/val converters
+            for (Header header : record.headers()) {
+                env.headers.put(header.key(), recordConverter.fromConnectHeader(record, header));
+            }
+        }
+
+        try {
+            byte[] rawData = MAPPER.writeValueAsBytes(env);
+            plugin.returnBytes(returns[0], rawData);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private void setRecordFn(ExtismCurrentPlugin plugin, LibExtism.ExtismVal[] args, LibExtism.ExtismVal[] returns,
+        Optional<HostUserData> userData) {
+        final R record = this.ref.get();
+        final byte[] in = plugin.inputBytes(args[0]);
+
+        try {
+            WasmRecord w = MAPPER.readValue(in, WasmRecord.class);
+
+            // May not be needed but looks like the record headers may be required
+            // by key/val converters so let's do it even if I don't think the way
+            // I'm doing it is 100% correct :)
+
+            Headers connectHeaders = new ConnectHeaders();
+
+            w.headers.forEach((k, v) -> {
+                connectHeaders.add(k, recordConverter.toConnectHeader(record, k, v));
+            });
+
+            SchemaAndValue keyAndSchema = recordConverter.toConnectKey(record, w.key);
+            SchemaAndValue valueAndSchema = recordConverter.toConnectValue(record, w.value);
+
+            this.ref.set(
+                record.newRecord(
+                    w.topic,
+                    record.kafkaPartition(),
+                    keyAndSchema.schema(),
+                    keyAndSchema.value(),
+                    valueAndSchema.schema(),
+                    valueAndSchema.value(),
+                    record.timestamp(),
+                    connectHeaders));
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
 }
