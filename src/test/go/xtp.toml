@@ -8,7 +8,7 @@ name = "kafka-connect"
 [scripts]
 
   # xtp plugin build runs this script to generate the wasm file
-  build = "mkdir -p dist && tinygo build -target wasi -o ../resources/plugin.wasm ."
+  build = "tinygo build -target wasi -o ../resources/plugin.wasm ."
 
   # xtp plugin init runs this script to format the plugin code
   format = "go fmt"
