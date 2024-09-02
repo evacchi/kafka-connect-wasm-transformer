@@ -146,18 +146,17 @@ public class WasmFunction<R extends ConnectRecord<R>> implements AutoCloseable, 
                     this::setTopicFn,
                     Optional.empty()),
                 new HostFunction(
-                        "get_record",
-                        new LibExtism.ExtismValType[0],
-                        new LibExtism.ExtismValType[] { LibExtism.ExtismValType.I64 },
-                        this::getRecordFn,
-                        Optional.empty()),
+                    "get_record",
+                    new LibExtism.ExtismValType[0],
+                    new LibExtism.ExtismValType[] { LibExtism.ExtismValType.I64 },
+                    this::getRecordFn,
+                    Optional.empty()),
                 new HostFunction(
-                        "set_record",
-                        new LibExtism.ExtismValType[] { LibExtism.ExtismValType.I64 },
-                        new LibExtism.ExtismValType[0],
-                        this::setRecordFn,
-                        Optional.empty()),
-
+                    "set_record",
+                    new LibExtism.ExtismValType[] { LibExtism.ExtismValType.I64 },
+                    new LibExtism.ExtismValType[0],
+                    this::setRecordFn,
+                    Optional.empty()),
 
         };
     }
@@ -297,7 +296,7 @@ public class WasmFunction<R extends ConnectRecord<R>> implements AutoCloseable, 
             // May not be needed but looks like the record headers may be required
             // by key/val converters
             for (Header header : record.headers()) {
-                env.headers.put(header.key(), recordConverter.fromConnectHeader(record, header));
+                env.headers.add(new WasmRecordHeader(header.key(), recordConverter.fromConnectHeader(record, header)));
             }
         }
 
@@ -323,8 +322,8 @@ public class WasmFunction<R extends ConnectRecord<R>> implements AutoCloseable, 
 
             Headers connectHeaders = new ConnectHeaders();
 
-            w.headers.forEach((k, v) -> {
-                connectHeaders.add(k, recordConverter.toConnectHeader(record, k, v));
+            w.headers.forEach(r -> {
+                connectHeaders.add(r.key, recordConverter.toConnectHeader(record, r.key, r.value));
             });
 
             SchemaAndValue keyAndSchema = recordConverter.toConnectKey(record, w.key);
