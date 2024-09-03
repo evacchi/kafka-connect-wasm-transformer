@@ -34,12 +34,12 @@ class WasmTransformerTest extends WasmTransformerTestSpec {
     @TempDir
     Path connectTmp
 
-    def 'direct transformer (to_upper)'() {
+    def 'direct transformer (toUpper)'() {
         given:
             def t = new WasmTransformer()
             t.configure(Map.of(
                     WasmTransformer.WASM_MODULE_PATH, 'src/test/resources/plugin.wasm',
-                    WasmTransformer.WASM_FUNCTION_NAME, 'to_upper',
+                    WasmTransformer.WASM_FUNCTION_NAME, 'toUpper',
             ))
 
             def recordIn = sourceRecord()
@@ -56,12 +56,12 @@ class WasmTransformerTest extends WasmTransformerTestSpec {
             closeQuietly(t)
     }
 
-    def 'direct transformer (value_to_key)'() {
+    def 'direct transformer (valueToKey)'() {
         given:
             def t = new WasmTransformer()
             t.configure(Map.of(
                     WasmTransformer.WASM_MODULE_PATH, 'src/test/resources/plugin.wasm',
-                    WasmTransformer.WASM_FUNCTION_NAME, 'value_to_key',
+                    WasmTransformer.WASM_FUNCTION_NAME, 'valueToKey',
             ))
 
             def recordIn = sourceRecord()
@@ -78,12 +78,12 @@ class WasmTransformerTest extends WasmTransformerTestSpec {
             closeQuietly(t)
     }
 
-    def 'direct transformer (header_to_key)'() {
+    def 'direct transformer (headerToKey)'() {
         given:
             def t = new WasmTransformer()
             t.configure(Map.of(
                     WasmTransformer.WASM_MODULE_PATH, 'src/test/resources/plugin.wasm',
-                    WasmTransformer.WASM_FUNCTION_NAME, 'header_to_key',
+                    WasmTransformer.WASM_FUNCTION_NAME, 'headerToKey',
             ))
 
             def recordIn = sourceRecord()
@@ -102,14 +102,14 @@ class WasmTransformerTest extends WasmTransformerTestSpec {
     }
 
 
-    def 'direct transformer (copy_header)'() {
+    def 'direct transformer (copyHeader)'() {
         given:
             def headerValue = UUID.randomUUID().toString().getBytes(StandardCharsets.UTF_8)
 
             def t = new WasmTransformer()
             t.configure(Map.of(
                     WasmTransformer.WASM_MODULE_PATH, 'src/test/resources/plugin.wasm',
-                    WasmTransformer.WASM_FUNCTION_NAME, 'copy_header',
+                    WasmTransformer.WASM_FUNCTION_NAME, 'copyHeader',
             ))
 
             def recordIn = sourceRecord()
@@ -150,7 +150,7 @@ class WasmTransformerTest extends WasmTransformerTestSpec {
             closeQuietly(t)
     }
 
-    def 'pipeline transformer (to_upper)'() {
+    def 'pipeline transformer (toUpper)'() {
 
         given:
             def inFile = connectTmp.resolve('in.txt')
@@ -201,7 +201,7 @@ class WasmTransformerTest extends WasmTransformerTestSpec {
             closeQuietly(kc)
     }
 
-    def 'pipeline transformer (value_to_key)'() {
+    def 'pipeline transformer (valueToKey)'() {
 
         given:
             def inFile = connectTmp.resolve('in.txt')
@@ -223,7 +223,7 @@ class WasmTransformerTest extends WasmTransformerTestSpec {
                     ConnectorConfig.TRANSFORMS_CONFIG, 'wasm',
                     ConnectorConfig.TRANSFORMS_CONFIG + '.wasm.type', WasmTransformer.class.name,
                     ConnectorConfig.TRANSFORMS_CONFIG + '.wasm.' + WasmTransformer.WASM_MODULE_PATH, 'src/test/resources/plugin.wasm',
-                    ConnectorConfig.TRANSFORMS_CONFIG + '.wasm.' + WasmTransformer.WASM_FUNCTION_NAME, 'value_to_key',
+                    ConnectorConfig.TRANSFORMS_CONFIG + '.wasm.' + WasmTransformer.WASM_FUNCTION_NAME, 'valueToKey',
                     ConnectorConfig.TRANSFORMS_CONFIG + '.wasm.' + WasmTransformer.KEY_CONVERTER, StringConverter.class.name,
                     ConnectorConfig.TRANSFORMS_CONFIG + '.wasm.' + WasmTransformer.VALUE_CONVERTER, StringConverter.class.name,
                     ConnectorConfig.TRANSFORMS_CONFIG + '.wasm.' + WasmTransformer.HEADER_CONVERTER, StringConverter.class.name,

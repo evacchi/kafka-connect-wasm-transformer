@@ -6,12 +6,11 @@ extension_point_id = ""
 name = "kafka-connect"
 
 [scripts]
+# xtp plugin build runs this script to generate the wasm file
+build = "tinygo build -target wasi -o ../resources/plugin.wasm ."
 
-  # xtp plugin build runs this script to generate the wasm file
-  build = "tinygo build -target wasi -o ../resources/plugin.wasm ."
+# xtp plugin init runs this script to format the code
+format = "go fmt"
 
-  # xtp plugin init runs this script to format the plugin code
-  format = "go fmt"
-
-  # xtp plugin init runs this script before running the format script
-  prepare = "go get ./..."
+# xtp plugin init runs this script before running the format script
+prepare = "go get ./..."

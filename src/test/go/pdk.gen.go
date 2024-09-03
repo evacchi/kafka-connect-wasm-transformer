@@ -2,6 +2,9 @@
 package main
 
 import (
+	
+	
+
 	pdk "github.com/extism/go-pdk"
 )
 
@@ -9,261 +12,292 @@ import (
 func _apply() int32 {
 	var err error
 	_ = err
-	err = apply()
-	if err != nil {
-		pdk.SetError(err)
-		return -1
-	}
-
+            err = apply()
+    		if err != nil {
+			pdk.SetError(err)
+			return -1
+		}
+  
+  
 	pdk.Log(pdk.LogDebug, "apply: returning")
-	return 0
+  return 0
 }
 
-//export copy_header
-func _copy_header() int32 {
+//export copyHeader
+func _copyHeader() int32 {
 	var err error
 	_ = err
-	err = copy_header()
-	if err != nil {
-		pdk.SetError(err)
-		return -1
-	}
-
-	pdk.Log(pdk.LogDebug, "copy_header: returning")
-	return 0
+            err = copyHeader()
+    		if err != nil {
+			pdk.SetError(err)
+			return -1
+		}
+  
+  
+	pdk.Log(pdk.LogDebug, "copyHeader: returning")
+  return 0
 }
 
-//export header_to_key
-func _header_to_key() int32 {
+//export headerToKey
+func _headerToKey() int32 {
 	var err error
 	_ = err
-	err = header_to_key()
-	if err != nil {
-		pdk.SetError(err)
-		return -1
-	}
-
-	pdk.Log(pdk.LogDebug, "header_to_key: returning")
-	return 0
+            err = headerToKey()
+    		if err != nil {
+			pdk.SetError(err)
+			return -1
+		}
+  
+  
+	pdk.Log(pdk.LogDebug, "headerToKey: returning")
+  return 0
 }
 
-//export to_upper
-func _to_upper() int32 {
+//export toUpper
+func _toUpper() int32 {
 	var err error
 	_ = err
-	err = to_upper()
-	if err != nil {
-		pdk.SetError(err)
-		return -1
-	}
-
-	pdk.Log(pdk.LogDebug, "to_upper: returning")
-	return 0
+            err = toUpper()
+    		if err != nil {
+			pdk.SetError(err)
+			return -1
+		}
+  
+  
+	pdk.Log(pdk.LogDebug, "toUpper: returning")
+  return 0
 }
 
 //export transform
 func _transform() int32 {
 	var err error
 	_ = err
-	err = transform()
-	if err != nil {
-		pdk.SetError(err)
-		return -1
-	}
-
+            err = transform()
+    		if err != nil {
+			pdk.SetError(err)
+			return -1
+		}
+  
+  
 	pdk.Log(pdk.LogDebug, "transform: returning")
-	return 0
+  return 0
 }
 
-//export value_to_key
-func _value_to_key() int32 {
+//export valueToKey
+func _valueToKey() int32 {
 	var err error
 	_ = err
-	err = value_to_key()
-	if err != nil {
-		pdk.SetError(err)
-		return -1
+            err = valueToKey()
+    		if err != nil {
+			pdk.SetError(err)
+			return -1
+		}
+  
+  
+	pdk.Log(pdk.LogDebug, "valueToKey: returning")
+  return 0
+}
+
+
+
+
+	
+		//go:wasmimport extism:host/user getHeader
+		func _getHeader(uint64) uint64
+	
+		//go:wasmimport extism:host/user getKey
+		func _getKey() uint64
+	
+		//go:wasmimport extism:host/user getRecord
+		func _getRecord() uint64
+	
+		//go:wasmimport extism:host/user getTopic
+		func _getTopic() uint64
+	
+		//go:wasmimport extism:host/user getValue
+		func _getValue() uint64
+	
+		//go:wasmimport extism:host/user setHeader
+		func _setHeader(uint64) 
+	
+		//go:wasmimport extism:host/user setKey
+		func _setKey(uint64) 
+	
+		//go:wasmimport extism:host/user setRecord
+		func _setRecord(uint64) 
+	
+		//go:wasmimport extism:host/user setTopic
+		func _setTopic(uint64) 
+	
+		//go:wasmimport extism:host/user setValue
+		func _setValue(uint64) 
+	
+
+	
+	
+	
+		
+	
+	// A key/value header pair.
+	type Header struct {
+						Key string `json:"key"`
+						Value []byte `json:"value"`
+		
+	}
+		
+	
+		
+	
+	// A plain key/value record.
+	type Record struct {
+						Headers []Header `json:"headers"`
+						Key []byte `json:"key"`
+						Topic string `json:"topic"`
+						Value []byte `json:"value"`
+		
+	}
+		
+	
+
+
+
+		// GetHeader 
+			func GetHeader(input string) ([]byte, error) {
+		var err error
+		_ = err
+					mem := pdk.AllocateString(input)
+		
+		offs := _getHeader(mem.Offset())
+		
+						outputMem := pdk.FindMemory(offs)
+			return outputMem.ReadBytes(), nil
+			
 	}
 
-	pdk.Log(pdk.LogDebug, "value_to_key: returning")
-	return 0
-}
-
-//go:wasmimport extism:host/user get_header
-func _get_header(uint64) uint64
-
-//go:wasmimport extism:host/user get_key
-func _get_key() uint64
-
-//go:wasmimport extism:host/user get_record
-func _get_record() uint64
-
-//go:wasmimport extism:host/user get_topic
-func _get_topic() uint64
-
-//go:wasmimport extism:host/user get_value
-func _get_value() uint64
-
-//go:wasmimport extism:host/user set_header
-func _set_header(uint64)
-
-//go:wasmimport extism:host/user set_key
-func _set_key(uint64)
-
-//go:wasmimport extism:host/user set_record
-func _set_record(uint64)
-
-//go:wasmimport extism:host/user set_topic
-func _set_topic(uint64)
-
-//go:wasmimport extism:host/user set_value
-func _set_value(uint64)
-
-// A key/value header pair.
-type Header struct {
-	Key   string `json:"key"`
-	Value []byte `json:"value"`
-}
-
-// A plain key/value record.
-type Record struct {
-	Headers []Header `json:"headers"`
-	Key     []byte   `json:"key"`
-	Topic   string   `json:"topic"`
-	Value   []byte   `json:"value"`
-}
-
-// Get_header
-func Get_header(input string) ([]byte, error) {
-	var err error
-	_ = err
-	mem := pdk.AllocateString(input)
-
-	offs := _get_header(mem.Offset())
-
-	outputMem := pdk.FindMemory(offs)
-	return outputMem.ReadBytes(), nil
-
-}
-
-// Get_key
-func Get_key() (*string, error) {
-	var err error
-	_ = err
-	offs := _get_key()
-
-	outputMem := pdk.FindMemory(offs)
-	out := string(outputMem.ReadBytes())
-	return &out, err
-
-}
-
-// Get_record
-// And it returns an output Record (A plain key/value record.)
-func Get_record() (*Record, error) {
-	var err error
-	_ = err
-	offs := _get_record()
-
-	var output Record
-	err = pdk.JSONFrom(offs, &output)
-	if err != nil {
-		return nil, err
-	}
-	return &output, nil
-
-}
-
-// Get_topic
-func Get_topic() (*string, error) {
-	var err error
-	_ = err
-	offs := _get_topic()
-
-	outputMem := pdk.FindMemory(offs)
-	out := string(outputMem.ReadBytes())
-	return &out, err
-
-}
-
-// Get_value
-func Get_value() ([]byte, error) {
-	var err error
-	_ = err
-	offs := _get_value()
-
-	outputMem := pdk.FindMemory(offs)
-	return outputMem.ReadBytes(), nil
-
-}
-
-// Set_header
-// It takes input of Header (A key/value header pair.)
-func Set_header(input Header) error {
-	var err error
-	_ = err
-	mem, err := pdk.AllocateJSON(&input)
-	if err != nil {
-		return err
+		// GetKey 
+			func GetKey() (*string, error) {
+		var err error
+		_ = err
+			offs := _getKey()
+		
+						outputMem := pdk.FindMemory(offs)
+			out := string(outputMem.ReadBytes())
+			return &out, err
+			
 	}
 
-	_set_header(mem.Offset())
-
-	return nil
-
-}
-
-// Set_key
-func Set_key(input string) error {
-	var err error
-	_ = err
-	mem := pdk.AllocateString(input)
-
-	_set_key(mem.Offset())
-
-	return nil
-
-}
-
-// Set_record
-// It takes input of Record (A plain key/value record.)
-func Set_record(input Record) error {
-	var err error
-	_ = err
-	mem, err := pdk.AllocateJSON(&input)
-	if err != nil {
-		return err
+		// GetRecord 
+			// And it returns an output Record (A plain key/value record.)
+		func GetRecord() (*Record, error) {
+		var err error
+		_ = err
+			offs := _getRecord()
+		
+						var output Record
+			err = pdk.JSONFrom(offs, &output)
+			if err != nil {
+				return nil, err
+			}
+			return &output, nil
+			
 	}
 
-	_set_record(mem.Offset())
+		// GetTopic 
+			func GetTopic() (*string, error) {
+		var err error
+		_ = err
+			offs := _getTopic()
+		
+						outputMem := pdk.FindMemory(offs)
+			out := string(outputMem.ReadBytes())
+			return &out, err
+			
+	}
 
-	return nil
+		// GetValue 
+			func GetValue() ([]byte, error) {
+		var err error
+		_ = err
+			offs := _getValue()
+		
+						outputMem := pdk.FindMemory(offs)
+			return outputMem.ReadBytes(), nil
+			
+	}
 
-}
+		// SetHeader 
+		// It takes input of Header (A key/value header pair.)
+			func SetHeader(input Header) error {
+		var err error
+		_ = err
+					mem, err := pdk.AllocateJSON(&input)
+		if err != nil {
+			return err
+		}
+		
+		 _setHeader(mem.Offset())
+		
+	
+		return nil
+	
+	}
 
-// Set_topic
-func Set_topic(input string) error {
-	var err error
-	_ = err
-	mem := pdk.AllocateString(input)
+		// SetKey 
+			func SetKey(input string) error {
+		var err error
+		_ = err
+					mem := pdk.AllocateString(input)
+		
+		 _setKey(mem.Offset())
+		
+	
+		return nil
+	
+	}
 
-	_set_topic(mem.Offset())
+		// SetRecord 
+		// It takes input of Record (A plain key/value record.)
+			func SetRecord(input Record) error {
+		var err error
+		_ = err
+					mem, err := pdk.AllocateJSON(&input)
+		if err != nil {
+			return err
+		}
+		
+		 _setRecord(mem.Offset())
+		
+	
+		return nil
+	
+	}
 
-	return nil
+		// SetTopic 
+			func SetTopic(input string) error {
+		var err error
+		_ = err
+					mem := pdk.AllocateString(input)
+		
+		 _setTopic(mem.Offset())
+		
+	
+		return nil
+	
+	}
 
-}
+		// SetValue 
+			func SetValue(input []byte) error {
+		var err error
+		_ = err
+					mem := pdk.AllocateBytes(input)
+		
+		 _setValue(mem.Offset())
+		
+	
+		return nil
+	
+	}
 
-// Set_value
-func Set_value(input []byte) error {
-	var err error
-	_ = err
-	mem := pdk.AllocateBytes(input)
-
-	_set_value(mem.Offset())
-
-	return nil
-
-}
 
 // Note: leave this in place, as the Go compiler will find the `export` function as the entrypoint.
 func main() {}

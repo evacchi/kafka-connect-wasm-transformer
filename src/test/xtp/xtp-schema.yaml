@@ -2,57 +2,57 @@ exports:
   apply:
     description: |
       This function transforms a given record in place
-  to_upper:
+  toUpper:
     description: |
       This function converts key and value to upper case.
   transform:
     description: |
       This function takes a Record and returns a Record.
-  copy_header:
+  copyHeader:
     description: |
       This function copies a header into another header.
-  value_to_key:
+  valueToKey:
     description: |
       This function copies a value to the key.
-  header_to_key:
+  headerToKey:
     description: |
       This function copies a header to the key.
 
 imports:
-  get_key:
+  getKey:
     output:
       type: string
       contentType: text/plain; charset=utf-8
-  set_key:
+  setKey:
     input:
       type: string
       contentType: text/plain; charset=utf-8
-  get_topic:
+  getTopic:
     output:
       type: string
       contentType: text/plain; charset=utf-8
-  get_value:
+  getValue:
     output:
       type: buffer
       contentType: application/x-binary
-  get_record:
+  getRecord:
     output:
       $ref: "#/components/schemas/Record"
       contentType: application/json
-  set_record:
+  setRecord:
     input:
       $ref: "#/components/schemas/Record"
       contentType: application/json
 
-  set_topic:
+  setTopic:
     input:
       type: string
       contentType: text/plain; charset=utf-8
-  set_value:
+  setValue:
     input:
       type: buffer
       contentType: application/x-binary
-  get_header:
+  getHeader:
     input:
       type: string
       contentType: text/plain; charset=utf-8
@@ -60,7 +60,7 @@ imports:
       type: buffer
       contentType: application/x-binary
     description: ""
-  set_header:
+  setHeader:
     input:
       $ref: "#/components/schemas/Header"
       contentType: application/json

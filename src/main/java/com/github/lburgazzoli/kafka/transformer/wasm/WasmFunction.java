@@ -91,18 +91,17 @@ public class WasmFunction<R extends ConnectRecord<R>> implements AutoCloseable, 
     private HostFunction[] imports() {
         LibExtism.ExtismValType[] void_t = new LibExtism.ExtismValType[0];
         LibExtism.ExtismValType[] i64_t = { LibExtism.ExtismValType.I64 };
-        String getKey = "get_key";
         return new HostFunction[] {
-                hostFunction(getKey, this::setKeyFn, void_t, i64_t),
-                hostFunction("set_key", this::setKeyFn, i64_t, void_t),
-                hostFunction("get_value", this::getValueFn, void_t, i64_t),
-                hostFunction("set_value", this::setValueFn, i64_t, void_t),
-                hostFunction("get_header", this::getHeaderFn, i64_t, i64_t),
-                hostFunction("set_header", this::setHeaderFn, i64_t, void_t),
-                hostFunction("get_topic", this::getTopicFn, void_t, i64_t),
-                hostFunction("set_topic", this::setTopicFn, i64_t, void_t),
-                hostFunction("get_record", this::getRecordFn, void_t, i64_t),
-                hostFunction("set_record", this::setRecordFn, i64_t, void_t),
+                hostFunction("getKey", this::setKeyFn, void_t, i64_t),
+                hostFunction("setKey", this::setKeyFn, i64_t, void_t),
+                hostFunction("getValue", this::getValueFn, void_t, i64_t),
+                hostFunction("setValue", this::setValueFn, i64_t, void_t),
+                hostFunction("getHeader", this::getHeaderFn, i64_t, i64_t),
+                hostFunction("setHeader", this::setHeaderFn, i64_t, void_t),
+                hostFunction("getTopic", this::getTopicFn, void_t, i64_t),
+                hostFunction("setTopic", this::setTopicFn, i64_t, void_t),
+                hostFunction("getRecord", this::getRecordFn, void_t, i64_t),
+                hostFunction("setRecord", this::setRecordFn, i64_t, void_t),
         };
     }
 
