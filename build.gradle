@@ -59,6 +59,9 @@ test {
         maxRetries = 0
         maxFailures = 5
     }
+
+    systemProperty "jna.library.path", "/usr/local/lib"
+
 }
 
 testlogger {
