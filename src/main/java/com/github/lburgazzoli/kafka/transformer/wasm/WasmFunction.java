@@ -50,12 +50,12 @@ public class WasmFunction<R extends ConnectRecord<R>> implements AutoCloseable, 
     private final Plugin plugin;
 
     public WasmFunction(
-            String modulePath,
-            String functionName,
-            Converter keyConverter,
-            Converter valueConverter,
-            HeaderConverter headerConverter,
-            Map<String, ?> props) {
+        String modulePath,
+        String functionName,
+        Converter keyConverter,
+        Converter valueConverter,
+        HeaderConverter headerConverter,
+        Map<String, String> props) {
 
         Objects.requireNonNull(modulePath);
         this.ref = new AtomicReference<>();
@@ -64,8 +64,17 @@ public class WasmFunction<R extends ConnectRecord<R>> implements AutoCloseable, 
 
         WasmSourceResolver wasmSourceResolver = new WasmSourceResolver();
         PathWasmSource wasmSource = wasmSourceResolver.resolve(Path.of(modulePath));
-        Manifest manifest = new Manifest(List.of(wasmSource), null, (Map<String, String>) props);
-        this.plugin = new Plugin(manifest, true, imports());
+
+        Object fuel = props.remove(WasmTransformer.WASM_FUEL_LIMIT);
+        Manifest manifest = new Manifest(List.of(wasmSource), null, props);
+
+        if (fuel == null) {
+            // No fuel limit.
+            this.plugin = new Plugin(manifest, true, imports());
+        } else {
+            long f = Long.parseLong(fuel.toString());
+            this.plugin = new Plugin(manifest, true, imports(), f);
+        }
     }
 
     ObjectMapper om = new ObjectMapper();
@@ -84,6 +93,10 @@ public class WasmFunction<R extends ConnectRecord<R>> implements AutoCloseable, 
         } finally {
             ref.set(null);
         }
+    }
+
+    public String functionName() {
+        return functionName;
     }
 
     @Override

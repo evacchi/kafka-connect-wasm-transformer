@@ -1,6 +1,5 @@
 package com.github.lburgazzoli.kafka.transformer.wasm;
 
-import java.util.HashMap;
 import java.util.Map;
 
 import org.apache.kafka.common.config.ConfigDef;
@@ -26,6 +25,7 @@ public class WasmTransformer<R extends ConnectRecord<R>> implements Transformati
     public static final String HEADER_CONVERTER = "header.converter";
     public static final String WASM_MODULE_PATH = "module.path";
     public static final String WASM_FUNCTION_NAME = "function.name";
+    public static final String WASM_FUEL_LIMIT = "fuel.limit";
 
     public static final ConfigDef CONFIG_DEF = new ConfigDef()
         .define(WASM_MODULE_PATH,
@@ -54,7 +54,12 @@ public class WasmTransformer<R extends ConnectRecord<R>> implements Transformati
             ConfigDef.Type.CLASS,
             ByteArrayConverter.class,
             ConfigDef.Importance.MEDIUM,
-            "The converter used to serialize/deserialize the Connect Record Header to/from binary data.");
+            "The converter used to serialize/deserialize the Connect Record Header to/from binary data.")
+        .define(WASM_FUEL_LIMIT,
+            ConfigDef.Type.LONG,
+            0,
+            ConfigDef.Importance.LOW,
+            "The fuel limit for the Wasm function is a counter to a maximum number of instructions that can be executed.");
 
     private WasmFunction<R> function;
 
@@ -97,7 +102,7 @@ public class WasmTransformer<R extends ConnectRecord<R>> implements Transformati
             throw new ConfigException(WASM_FUNCTION_NAME);
         }
 
-        var cfg = new HashMap<>(props);
+        Map<String, String> cfg = ConfigDef.convertToStringMapWithPasswordValues(props);
 
         cfg.remove(KEY_CONVERTER);
         cfg.remove(VALUE_CONVERTER);
@@ -106,7 +111,7 @@ public class WasmTransformer<R extends ConnectRecord<R>> implements Transformati
         cfg.remove(WASM_FUNCTION_NAME);
 
         this.function = new WasmFunction<>(
-                modulePath, functionName, keyConverter, valueConverter, headerConverter, cfg);
+            modulePath, functionName, keyConverter, valueConverter, headerConverter, cfg);
     }
 
     @Override
@@ -115,9 +120,9 @@ public class WasmTransformer<R extends ConnectRecord<R>> implements Transformati
             return this.function.apply(record);
         } catch (WASMMachineException e) {
             LOGGER.warn("message: {}, stack {}", e.getMessage(), e.stackFrames());
-            throw new RuntimeException(e);
+            throw new WasmTransformerException(this.function.functionName(), e);
         } catch (Exception e) {
-            throw new RuntimeException(e);
+            throw new WasmTransformerException(this.function.functionName(), e);
         }
     }
 
