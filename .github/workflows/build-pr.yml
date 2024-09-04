@@ -35,3 +35,7 @@ jobs:
         run: |          
           ./gradlew check -x test
           ./gradlew test
+
+      - name: JMH
+        run: |
+          ./gradlew :jmh

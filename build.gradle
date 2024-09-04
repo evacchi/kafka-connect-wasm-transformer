@@ -9,6 +9,8 @@ plugins {
 
     id 'java-library'
     id 'groovy'
+
+    id "me.champeau.jmh" version "0.7.2"
 }
 
 group = 'com.github.lburgazzoli'
@@ -62,6 +64,10 @@ test {
 
     systemProperty "jna.library.path", "/usr/local/lib"
 
+}
+
+jmh {
+    jvmArgs = [ "-Djna.library.path=/usr/local/lib" ]
 }
 
 testlogger {

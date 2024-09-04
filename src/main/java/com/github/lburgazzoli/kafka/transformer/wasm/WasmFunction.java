@@ -40,10 +40,6 @@ public class WasmFunction<R extends ConnectRecord<R>> implements AutoCloseable, 
 
     public static final ObjectMapper MAPPER = JsonMapper.builder().build();
 
-    public static final String MODULE_NAME = "env";
-    public static final String FN_ALLOC = "alloc";
-    public static final String FN_DEALLOC = "dealloc";
-
     private final WasmRecordConverter<R> recordConverter;
     private final String functionName;
     private final AtomicReference<R> ref;
@@ -107,9 +103,8 @@ public class WasmFunction<R extends ConnectRecord<R>> implements AutoCloseable, 
     private HostFunction[] imports() {
         LibExtism.ExtismValType[] void_t = new LibExtism.ExtismValType[0];
         LibExtism.ExtismValType[] i64_t = { LibExtism.ExtismValType.I64 };
-        String getKey = "get_key";
         return new HostFunction[] {
-                hostFunction(getKey, this::setKeyFn, void_t, i64_t),
+                hostFunction("get_key", this::getKeyFn, void_t, i64_t),
                 hostFunction("set_key", this::setKeyFn, i64_t, void_t),
                 hostFunction("get_value", this::getValueFn, void_t, i64_t),
                 hostFunction("set_value", this::setValueFn, i64_t, void_t),

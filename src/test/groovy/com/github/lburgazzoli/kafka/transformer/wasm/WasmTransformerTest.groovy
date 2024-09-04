@@ -51,12 +51,36 @@ class WasmTransformerTest extends WasmTransformerTestSpec {
         when:
             def recordOut = t.apply(recordIn)
         then:
+            recordOut.key() == 'THE-KEY'.getBytes(StandardCharsets.UTF_8)
             recordOut.value() == 'THE-VALUE'.getBytes(StandardCharsets.UTF_8)
         cleanup:
             closeQuietly(t)
     }
 
     def 'direct transformer with fuel limit (to_upper)'() {
+        given:
+        def t = new WasmTransformer()
+        t.configure(Map.of(
+                WasmTransformer.WASM_MODULE_PATH, 'src/test/resources/plugin.wasm',
+                WasmTransformer.WASM_FUNCTION_NAME, 'to_upper',
+                WasmTransformer.WASM_FUEL_LIMIT, '500000',
+        ))
+
+        def recordIn = sourceRecord()
+                .withTopic('foo')
+                .withKey('the-key'.getBytes(StandardCharsets.UTF_8))
+                .withValue('the-value'.getBytes(StandardCharsets.UTF_8))
+                .build()
+
+        when:
+            def recordOut = t.apply(recordIn)
+        then:
+            recordOut.value() == 'THE-VALUE'.getBytes(StandardCharsets.UTF_8)
+        cleanup:
+            closeQuietly(t)
+    }
+
+    def 'direct transformer with fuel limit below threshold (to_upper)'() {
         given:
         def t = new WasmTransformer()
         t.configure(Map.of(
@@ -72,11 +96,11 @@ class WasmTransformerTest extends WasmTransformerTestSpec {
                 .build()
 
         when:
-        def recordOut = t.apply(recordIn)
+            t.apply(recordIn)
         then:
-        thrown WasmTransformerException
+            thrown WasmTransformerException
         cleanup:
-        closeQuietly(t)
+            closeQuietly(t)
     }
 
 

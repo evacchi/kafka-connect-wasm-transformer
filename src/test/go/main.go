@@ -2,7 +2,11 @@
 // ./pdk.gen.go contains the domain types from the host where your plugin will run.
 package main
 
-import "strings"
+import (
+	"strings"
+
+	pdk "github.com/extism/go-pdk"
+)
 
 // This function transforms a given record in place
 func apply() error {
@@ -12,6 +16,7 @@ func apply() error {
 // This function convert key and value to upper case.
 func to_upper() error {
 	k, err := Get_key()
+	pdk.Log(pdk.LogError, "to_upper: key: "+*k)
 	if err != nil {
 		return err
 	}
