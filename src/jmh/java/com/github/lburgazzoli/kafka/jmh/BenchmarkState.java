@@ -18,7 +18,10 @@ import org.openjdk.jmh.annotations.TearDown;
 public class BenchmarkState {
     private static String modulePath = "src/jmh/resources/plugin.wasm";
 
-    @Param({ "2500000" }) // 500000 * 5 iterations.
+    @Param({
+        "-1",     // No fuel limit.
+        "2500000" // Fuel limit = 500000 * 5 iterations.
+    })
     public long fuelLimit;
 
     private Plugin plugin;
