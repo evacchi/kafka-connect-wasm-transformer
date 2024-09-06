@@ -10,6 +10,7 @@ groovy = "4.0.18"
 spock = "2.3-groovy-4.0"
 kafka = "3.8.0"
 chicory = "0.0.12"
+extism = "2.0.0-SNAPSHOT"
 
 versionsPlugin = "0.51.0"
 spotlessPlugin = "6.25.0"
@@ -25,7 +26,9 @@ assertj = { module = "org.assertj:assertj-core", version.ref = "assertj" }
 junit = { module = "org.junit.jupiter:junit-jupiter", version.ref = "junit" }
 testcontainers = { module = "org.testcontainers:testcontainers", version.ref = "testcontainers" }
 testcontainersJunit = { module = "org.testcontainers:junit-jupiter", version.ref = "testcontainers" }
-testcontainersRedpanda = { module = "org.testcontainers:redpanda", version.ref = "testcontainers" }
+#testcontainersRedpanda = { module = "org.testcontainers:redpanda", version.ref = "testcontainers" }
+testcontainersKafkaNative = { module = "org.testcontainers:kafka", version.ref = "testcontainers" }
+extismJavaSDK = { module = "org.extism.sdk:extism", version.ref = "extism" }
 testcontainersSpock = { module = "org.testcontainers:spock", version.ref = "testcontainers" }
 awaitility = { module = "org.awaitility:awaitility", version.ref = "awaitility" }
 log4jApi = { module = "org.apache.logging.log4j:log4j-api", version.ref = "log4j" }
@@ -46,10 +49,11 @@ jacksonDatabind = { module = "com.fasterxml.jackson.core:jackson-databind", vers
 [bundles]
 log4j        = [ "log4jApi", "log4jCore", "log4jSlf4j", "log4j12" ]
 testing      = [ "junit", "assertj", "awaitility" ]
-testingIt    = [ "testcontainers", "testcontainersJunit", "testcontainersSpock", "testcontainersRedpanda" ]
+testingIt    = [ "testcontainers", "testcontainersJunit", "testcontainersSpock", "testcontainersKafkaNative" ]
 testingKafka = [ "kafkaClient", "kafkaConnectFile" ]
 kafka        = [ "kafkaConnectApi", "kafkaConnectTransforms" , "kafkaConnectJson", "kafkaConnectRuntime"]
 chicory      = [ "chikoryRuntime", "chicoryWasi" ]
+extism       = [ "extismJavaSDK" ]
 jackson      = [ "jacksonCore", "jacksonDatabind" ]
 
 [plugins]

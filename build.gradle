@@ -9,6 +9,8 @@ plugins {
 
     id 'java-library'
     id 'groovy'
+
+    id "me.champeau.jmh" version "0.7.2"
 }
 
 group = 'com.github.lburgazzoli'
@@ -30,6 +32,7 @@ dependencies {
     implementation libs.slf4j
     implementation libs.bundles.kafka
     implementation libs.bundles.chicory
+    implementation libs.bundles.extism
     implementation libs.bundles.jackson
 
     testImplementation platform("org.apache.groovy:groovy-bom:${libs.versions.groovy.get()}")
@@ -58,6 +61,13 @@ test {
         maxRetries = 0
         maxFailures = 5
     }
+
+    systemProperty "jna.library.path", "/usr/local/lib"
+
+}
+
+jmh {
+    jvmArgs = [ "-Djna.library.path=/usr/local/lib" ]
 }
 
 testlogger {

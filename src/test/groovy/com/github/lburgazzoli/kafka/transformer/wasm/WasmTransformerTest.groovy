@@ -8,11 +8,13 @@ import org.apache.kafka.clients.consumer.Consumer
 import org.apache.kafka.clients.producer.Producer
 import org.apache.kafka.connect.data.Schema
 import org.apache.kafka.connect.file.FileStreamSourceConnector
+import org.apache.kafka.connect.header.Header
 import org.apache.kafka.connect.runtime.ConnectorConfig
 import org.apache.kafka.connect.runtime.WorkerConfig
 import org.apache.kafka.connect.runtime.isolation.PluginDiscoveryMode
 import org.apache.kafka.connect.storage.StringConverter
 import org.testcontainers.spock.Testcontainers
+import spock.lang.Ignore
 import spock.lang.Shared
 import spock.lang.TempDir
 
@@ -36,7 +38,7 @@ class WasmTransformerTest extends WasmTransformerTestSpec {
         given:
             def t = new WasmTransformer()
             t.configure(Map.of(
-                    WasmTransformer.WASM_MODULE_PATH, 'src/test/resources/functions.wasm',
+                    WasmTransformer.WASM_MODULE_PATH, 'src/test/resources/plugin.wasm',
                     WasmTransformer.WASM_FUNCTION_NAME, 'to_upper',
             ))
 
@@ -49,16 +51,64 @@ class WasmTransformerTest extends WasmTransformerTestSpec {
         when:
             def recordOut = t.apply(recordIn)
         then:
+            recordOut.key() == 'THE-KEY'.getBytes(StandardCharsets.UTF_8)
             recordOut.value() == 'THE-VALUE'.getBytes(StandardCharsets.UTF_8)
         cleanup:
             closeQuietly(t)
     }
 
+    def 'direct transformer with fuel limit (to_upper)'() {
+        given:
+        def t = new WasmTransformer()
+        t.configure(Map.of(
+                WasmTransformer.WASM_MODULE_PATH, 'src/test/resources/plugin.wasm',
+                WasmTransformer.WASM_FUNCTION_NAME, 'to_upper',
+                WasmTransformer.WASM_FUEL_LIMIT, '500000',
+        ))
+
+        def recordIn = sourceRecord()
+                .withTopic('foo')
+                .withKey('the-key'.getBytes(StandardCharsets.UTF_8))
+                .withValue('the-value'.getBytes(StandardCharsets.UTF_8))
+                .build()
+
+        when:
+            def recordOut = t.apply(recordIn)
+        then:
+            recordOut.value() == 'THE-VALUE'.getBytes(StandardCharsets.UTF_8)
+        cleanup:
+            closeQuietly(t)
+    }
+
+    def 'direct transformer with fuel limit below threshold (to_upper)'() {
+        given:
+        def t = new WasmTransformer()
+        t.configure(Map.of(
+                WasmTransformer.WASM_MODULE_PATH, 'src/test/resources/plugin.wasm',
+                WasmTransformer.WASM_FUNCTION_NAME, 'to_upper',
+                WasmTransformer.WASM_FUEL_LIMIT, '100000',
+        ))
+
+        def recordIn = sourceRecord()
+                .withTopic('foo')
+                .withKey('the-key'.getBytes(StandardCharsets.UTF_8))
+                .withValue('the-value'.getBytes(StandardCharsets.UTF_8))
+                .build()
+
+        when:
+            t.apply(recordIn)
+        then:
+            thrown WasmTransformerException
+        cleanup:
+            closeQuietly(t)
+    }
+
+
     def 'direct transformer (value_to_key)'() {
         given:
             def t = new WasmTransformer()
             t.configure(Map.of(
-                    WasmTransformer.WASM_MODULE_PATH, 'src/test/resources/functions.wasm',
+                    WasmTransformer.WASM_MODULE_PATH, 'src/test/resources/plugin.wasm',
                     WasmTransformer.WASM_FUNCTION_NAME, 'value_to_key',
             ))
 
@@ -80,7 +130,7 @@ class WasmTransformerTest extends WasmTransformerTestSpec {
         given:
             def t = new WasmTransformer()
             t.configure(Map.of(
-                    WasmTransformer.WASM_MODULE_PATH, 'src/test/resources/functions.wasm',
+                    WasmTransformer.WASM_MODULE_PATH, 'src/test/resources/plugin.wasm',
                     WasmTransformer.WASM_FUNCTION_NAME, 'header_to_key',
             ))
 
@@ -99,13 +149,14 @@ class WasmTransformerTest extends WasmTransformerTestSpec {
             closeQuietly(t)
     }
 
+
     def 'direct transformer (copy_header)'() {
         given:
             def headerValue = UUID.randomUUID().toString().getBytes(StandardCharsets.UTF_8)
 
             def t = new WasmTransformer()
             t.configure(Map.of(
-                    WasmTransformer.WASM_MODULE_PATH, 'src/test/resources/functions.wasm',
+                    WasmTransformer.WASM_MODULE_PATH, 'src/test/resources/plugin.wasm',
                     WasmTransformer.WASM_FUNCTION_NAME, 'copy_header',
             ))
 
@@ -128,7 +179,7 @@ class WasmTransformerTest extends WasmTransformerTestSpec {
         given:
             def t = new WasmTransformer()
             t.configure(Map.of(
-                    WasmTransformer.WASM_MODULE_PATH, 'src/test/resources/functions.wasm',
+                    WasmTransformer.WASM_MODULE_PATH, 'src/test/resources/plugin.wasm',
                     WasmTransformer.WASM_FUNCTION_NAME, 'transform',
             ))
 
@@ -168,8 +219,8 @@ class WasmTransformerTest extends WasmTransformerTestSpec {
                     FileStreamSourceConnector.TOPIC_CONFIG, topic,
                     ConnectorConfig.TRANSFORMS_CONFIG, 'wasm',
                     ConnectorConfig.TRANSFORMS_CONFIG + '.wasm.type', WasmTransformer.class.name,
-                    ConnectorConfig.TRANSFORMS_CONFIG + '.wasm.' + WasmTransformer.WASM_MODULE_PATH, 'src/test/resources/functions.wasm',
-                    ConnectorConfig.TRANSFORMS_CONFIG + '.wasm.' + WasmTransformer.WASM_FUNCTION_NAME, 'to_upper',
+                    ConnectorConfig.TRANSFORMS_CONFIG + '.wasm.' + WasmTransformer.WASM_MODULE_PATH, 'src/test/resources/plugin.wasm',
+                    ConnectorConfig.TRANSFORMS_CONFIG + '.wasm.' + WasmTransformer.WASM_FUNCTION_NAME, 'transform',
                     ConnectorConfig.TRANSFORMS_CONFIG + '.wasm.' + WasmTransformer.KEY_CONVERTER, StringConverter.class.name,
                     ConnectorConfig.TRANSFORMS_CONFIG + '.wasm.' + WasmTransformer.VALUE_CONVERTER, StringConverter.class.name,
                     ConnectorConfig.TRANSFORMS_CONFIG + '.wasm.' + WasmTransformer.HEADER_CONVERTER, StringConverter.class.name,
@@ -219,7 +270,7 @@ class WasmTransformerTest extends WasmTransformerTestSpec {
                     FileStreamSourceConnector.TOPIC_CONFIG, topic,
                     ConnectorConfig.TRANSFORMS_CONFIG, 'wasm',
                     ConnectorConfig.TRANSFORMS_CONFIG + '.wasm.type', WasmTransformer.class.name,
-                    ConnectorConfig.TRANSFORMS_CONFIG + '.wasm.' + WasmTransformer.WASM_MODULE_PATH, 'src/test/resources/functions.wasm',
+                    ConnectorConfig.TRANSFORMS_CONFIG + '.wasm.' + WasmTransformer.WASM_MODULE_PATH, 'src/test/resources/plugin.wasm',
                     ConnectorConfig.TRANSFORMS_CONFIG + '.wasm.' + WasmTransformer.WASM_FUNCTION_NAME, 'value_to_key',
                     ConnectorConfig.TRANSFORMS_CONFIG + '.wasm.' + WasmTransformer.KEY_CONVERTER, StringConverter.class.name,
                     ConnectorConfig.TRANSFORMS_CONFIG + '.wasm.' + WasmTransformer.VALUE_CONVERTER, StringConverter.class.name,
@@ -271,7 +322,7 @@ class WasmTransformerTest extends WasmTransformerTestSpec {
                     FileStreamSourceConnector.TOPIC_CONFIG, topic,
                     ConnectorConfig.TRANSFORMS_CONFIG, 'wasm',
                     ConnectorConfig.TRANSFORMS_CONFIG + '.wasm.type', WasmTransformer.class.name,
-                    ConnectorConfig.TRANSFORMS_CONFIG + '.wasm.' + WasmTransformer.WASM_MODULE_PATH, 'src/test/resources/functions.wasm',
+                    ConnectorConfig.TRANSFORMS_CONFIG + '.wasm.' + WasmTransformer.WASM_MODULE_PATH, 'src/test/resources/plugin.wasm',
                     ConnectorConfig.TRANSFORMS_CONFIG + '.wasm.' + WasmTransformer.WASM_FUNCTION_NAME, 'transform',
                     ConnectorConfig.TRANSFORMS_CONFIG + '.wasm.' + WasmTransformer.KEY_CONVERTER, StringConverter.class.name,
                     ConnectorConfig.TRANSFORMS_CONFIG + '.wasm.' + WasmTransformer.VALUE_CONVERTER, StringConverter.class.name,
